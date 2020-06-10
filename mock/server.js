@@ -10,6 +10,28 @@ app.use((req, res, next) => {
   next(); // 触发下一个中间件/路由
 });
 
+// 使用解析POST/PUT请求的请求体参数的中间件
+app.use(express.json());
+
+app.post("/admin/edu/subject/save", (req, res, next) => {
+  // 默认express不解析请求体参数
+  // 需要使用中间件
+  const { title, parentId } = req.body;
+
+  // 返回响应
+  res.json({
+    code: 20000, // 成功状态码
+    success: true, // 成功
+    data: {
+      // 成功的具体数据
+      _id: Date.now(),
+      title,
+      parentId,
+    },
+    message: "", // 失败原因
+  });
+});
+
 //二级分类
 app.get("/admin/edu/subject/get/:parentId", (req, res, next) => {
   const { parentId } = req.params;
