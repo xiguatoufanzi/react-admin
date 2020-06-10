@@ -1,40 +1,43 @@
 import React, { Component } from "react";
 import { Button, Table } from "antd";
 import { PlusOutlined, FormOutlined, DeleteOutlined } from "@ant-design/icons";
+import { connect } from "react-redux";
 
-import { reqGetSubjectList } from "@api/edu/subject";
+import { getSubjectList, getSubSubjectList } from "./redux";
 import "./index.less";
 
-export default class index extends Component {
+@connect(
+  (state) => ({
+    subjectList: state.subjectList,
+  }),
+  { getSubjectList, getSubSubjectList }
+)
+class Subject extends Component {
   state = {
-    subjects: {
-      total: 0,
-      items: [],
-    },
     page: 1,
     limit: 10,
+    expandedRowKeys: [],
   };
 
   componentDidMount() {
-    this.getSubjectList(1, 10);
+    this.props.getSubjectList(1, 10);
   }
-  // 获取subject分页列表数据
-  getSubjectList = async (page, limit) => {
-    const result = await reqGetSubjectList(page, limit);
+
+  handleExpandedRowsChange = (expandedRowKeys) => {
+    const length = expandedRowKeys.length;
+    if (length > this.state.expandedRowKeys.length) {
+      const lastKey = expandedRowKeys[length - 1];
+      this.props.getSubSubjectList(lastKey);
+    }
+
     this.setState({
-      subjects: result,
-      page,
-      limit,
+      expandedRowKeys,
     });
   };
 
-  ShowSizeChange = (current, size) => {
-    console.log(current, size);
-  };
-
   render() {
-    const { subjects, page, limit } = this.state;
-    // console.log(subjects);
+    const { subjectList, getSubjectList } = this.props;
+    const { expandedRowKeys } = this.state;
 
     const columns = [
       { title: "分类名称", dataIndex: "title", key: "title" },
@@ -65,26 +68,26 @@ export default class index extends Component {
         <Table
           columns={columns}
           expandable={{
-            expandedRowRender: (record) => (
-              <p style={{ margin: 0 }}>{record.description}</p>
-            ),
-            rowExpandable: (record) => record.name !== "Not Expandable",
+            expandedRowKeys,
+            onExpandedRowsChange: this.handleExpandedRowsChange,
           }}
-          dataSource={subjects.items}
+          dataSource={subjectList.items}
           rowKey="_id"
           pagination={{
-            total: subjects.total,
+            total: subjectList.total,
             showQuickJumper: true, // 是否显示快速跳转
             showSizeChanger: true, // 是否显示修改每页显示数量
             pageSizeOptions: ["5", "10", "15", "20"],
             defaultPageSize: 10,
-            onChange: this.getSubjectList,
-            onShowSizeChange: this.getSubjectList,
-            current: page,
-            pageSize: limit,
+            onChange: getSubjectList,
+            onShowSizeChange: getSubjectList,
+            /* current: page,
+            pageSize: limit, */
           }}
         />
       </div>
     );
   }
 }
+
+export default Subject;

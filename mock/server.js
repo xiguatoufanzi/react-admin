@@ -10,6 +10,35 @@ app.use((req, res, next) => {
   next(); // 触发下一个中间件/路由
 });
 
+//二级分类
+app.get("/admin/edu/subject/get/:parentId", (req, res, next) => {
+  const { parentId } = req.params;
+
+  const total = Random.integer(0, 5);
+  const data = Mock.mock({
+    total,
+    [`items|${total}`]: [
+      {
+        "_id|+1": 100,
+        title: "@ctitle(2,5)",
+        parentId,
+      },
+    ],
+  });
+
+  if (total === 1) {
+    data.items = [data.items];
+  }
+
+  res.json({
+    code: 20000, // 成功状态码
+    success: true, // 成功
+    data, // 成功的具体数据
+    message: "", // 失败原因
+  });
+});
+
+//模拟一级分类数据
 app.get("/admin/edu/subject/:page/:limit", (req, res, next) => {
   const { page, limit } = req.params;
 
