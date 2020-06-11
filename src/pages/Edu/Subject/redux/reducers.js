@@ -1,4 +1,8 @@
-import { GET_SUBJECT_LIST, GET_SUB_SUBJECT_LIST } from "./constants";
+import {
+  GET_SUBJECT_LIST,
+  GET_SUB_SUBJECT_LIST,
+  UPDATE_SUBJECT,
+} from "./constants";
 
 const initSubjectList = {
   total: 0, // 总数
@@ -25,6 +29,30 @@ export default function subjectList(prevState = initSubjectList, action) {
           if (subject._id === parentId) {
             subject.children = subSubjectList;
           }
+          return subject;
+        }),
+      };
+    case UPDATE_SUBJECT:
+      return {
+        total: prevState.total,
+        //一级分类
+        items: prevState.items.map((subject) => {
+          if (subject._id === action.data._id) {
+            return {
+              ...subject,
+              ...action.data,
+            };
+          }
+          //二级分类
+          subject.children = subject.children.map((item) => {
+            if (item._id === action.data._id) {
+              return {
+                ...item,
+                ...action.data,
+              };
+            }
+            return item;
+          });
           return subject;
         }),
       };

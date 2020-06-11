@@ -30,6 +30,7 @@ function AddSubject({ total, getSubjectList, history }) {
   };
 
   useEffect(() => {
+    page = 1; // 解决page不重置 请求累加问题
     const fetchData = async () => {
       const items = await getSubjectList(page++, 10);
 
