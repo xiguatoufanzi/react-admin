@@ -1,4 +1,4 @@
 import chapter from "./reducers";
-import { getAllCourseList } from "./action";
+import { getAllCourseList, getChapterList, getLessonList } from "./action";
 
-export { chapter, getAllCourseList };
+export { chapter, getAllCourseList, getChapterList, getLessonList };

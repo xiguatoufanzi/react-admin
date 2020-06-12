@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
-import { Form, Button, Select } from "antd";
+import { Form, Button, Select, message } from "antd";
 import { connect } from "react-redux";
-import { getAllCourseList } from "../../redux";
+import { getAllCourseList, getChapterList } from "../../redux";
 
 import "./index.less";
 
 const { Option } = Select;
 
-function Search({ allCourseList, getAllCourseList }) {
+function Search({ allCourseList, getAllCourseList, getChapterList }) {
   const [form] = Form.useForm();
 
   const resetForm = () => {
@@ -15,8 +15,9 @@ function Search({ allCourseList, getAllCourseList }) {
     form.resetFields(["title"]);
   };
 
-  const onFinish = (values) => {
-    console.log(values);
+  const onFinish = async ({ courseId }) => {
+    await getChapterList({ page: 1, limit: 10, courseId });
+    message.success("获取课时数据成功");
   };
 
   useEffect(() => {
@@ -31,7 +32,7 @@ function Search({ allCourseList, getAllCourseList }) {
       className="chapter-search"
     >
       <Form.Item
-        name="title"
+        name="courseId"
         label="选择课程"
         rules={[{ required: true, message: "请选择课程！" }]}
       >
@@ -66,5 +67,5 @@ export default connect(
   (state) => ({
     allCourseList: state.chapter.allCourseList,
   }),
-  { getAllCourseList }
+  { getAllCourseList, getChapterList }
 )(Search);
