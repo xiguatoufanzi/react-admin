@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Tooltip, Alert, Table } from "antd";
+import { Button, Tooltip, Alert, Table, Modal } from "antd";
 import {
   PlusOutlined,
   FullscreenOutlined,
@@ -7,12 +7,16 @@ import {
   SettingOutlined,
   FormOutlined,
   DeleteOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
+import Player from "griffith";
 import { getLessonList } from "../../redux";
 
 import "./index.less";
 
+@withRouter
 @connect(
   (state) => ({
     chapters: state.chapter.chapters,
@@ -22,6 +26,8 @@ import "./index.less";
 class List extends Component {
   state = {
     expandedRowKeys: [],
+    isShowVideoModal: false, // Modal显示&隐藏
+    lesson: {}, // 显示的数据
   };
 
   // 点击展开一级菜单
@@ -37,9 +43,35 @@ class List extends Component {
     });
   };
 
+  // 显示增加课时页面
+  //为什么传chapter
+  showAddLesson = (chapter) => {
+    return () => {
+      this.props.history.push("/edu/chapter/addlesson", chapter);
+    };
+  };
+
+  // 显示modal
+  showVideoModal = (lesson) => {
+    return () => {
+      this.setState({
+        isShowVideoModal: true,
+        lesson,
+      });
+    };
+  };
+
+  // 关闭modal
+  hidden = () => {
+    this.setState({
+      isShowVideoModal: false,
+      lesson: {},
+    });
+  };
+
   render() {
     const { chapters } = this.props;
-    const { expandedRowKeys } = this.state;
+    const { expandedRowKeys, isShowVideoModal, lesson } = this.state;
 
     const columns = [
       {
@@ -56,6 +88,21 @@ class List extends Component {
         },
       },
       {
+        title: "视频",
+        key: "video",
+        render: (lesson) => {
+          return (
+            "video" in lesson && (
+              <Tooltip title="预览视频">
+                <Button onClick={this.showVideoModal(lesson)}>
+                  <EyeOutlined />
+                </Button>
+              </Tooltip>
+            )
+          );
+        },
+      },
+      {
         title: "操作",
         key: "action",
         width: 250,
@@ -67,7 +114,7 @@ class List extends Component {
                   <Button
                     type="primary"
                     className="chapter-btn"
-                    // onClick={this.showUpdateSubject(subject)}
+                    onClick={this.showAddLesson(data)}
                   >
                     <PlusOutlined />
                   </Button>
@@ -142,6 +189,26 @@ class List extends Component {
             // pageSize,
           }}
         />
+
+        <Modal
+          title={lesson.title}
+          visible={isShowVideoModal}
+          onCancel={this.hidden}
+          footer={null}
+          centered // 垂直居中
+          destroyOnClose={true} // 关闭时销毁子元素
+        >
+          <Player
+            id="video"
+            duration={128}
+            cover="http://localhost:3000/static/media/logo.ba1f87ec.png" // 封面图
+            sources={{
+              hd: {
+                play_url: lesson.video,
+              },
+            }}
+          />
+        </Modal>
       </div>
     );
   }
