@@ -13,3 +13,14 @@ export function reqGetChapterList({ page, limit, courseId }) {
     },
   });
 }
+
+// 批量删除章节列表
+export function reqBatchRemoveChapterList(idList) {
+  return request({
+    url: `${BASE_URL}/batchRemove`,
+    method: "DELETE",
+    data: {
+      idList,
+    },
+  });
+}
