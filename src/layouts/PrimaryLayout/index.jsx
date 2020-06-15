@@ -17,6 +17,7 @@ import { logout } from "@redux/actions/login";
 import { resetUser } from "../../components/Authorized/redux";
 import logo from "@assets/images/logo.png";
 import { findPathIndex } from "@utils/tools";
+import { changeLanguageSync } from "@redux/actions/lang";
 
 // 引入组件公共样式
 import "@assets/css/common.less";
@@ -27,10 +28,12 @@ const { Header, Sider, Content } = Layout;
 @connect(
   (state) => ({
     user: state.user,
+    language: state.language,
   }),
   {
     logout,
     resetUser,
+    changeLanguageSync,
   }
 )
 @withRouter
@@ -54,8 +57,12 @@ class PrimaryLayout extends Component {
     });
   };
 
+  clickLang = ({ key }) => {
+    this.props.changeLanguageSync(key);
+  };
+
   langMenu = (
-    <Menu>
+    <Menu selectable onClick={this.clickLang} defaultSelectedKeys={["zh"]}>
       <Menu.Item key="zh">中文</Menu.Item>
       <Menu.Item key="en">English</Menu.Item>
     </Menu>

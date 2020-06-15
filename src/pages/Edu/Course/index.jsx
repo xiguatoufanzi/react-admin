@@ -10,6 +10,7 @@ import {
   RedoOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
+import { FormattedMessage } from "react-intl";
 
 import { connect } from "react-redux";
 import Search from "./components/Search";
@@ -36,11 +37,11 @@ class Course extends Component {
   };
 
   // 获取搜索表单的数据
-  getSearchFormData = ({ teacherId, title, subjectId, subjectParentId }) => {
+  /*  getSearchFormData = ({ teacherId, title, subjectId, subjectParentId }) => {
     this.setState({
       searchData: { teacherId, title, subjectId, subjectParentId },
     });
-  };
+  }; */
 
   search = (searchName) => {
     this.setState({
@@ -231,7 +232,28 @@ class Course extends Component {
 
   sortTable = (pagination, filters, sorter) => {
     console.log(sorter);
+    const searchData = this.searchData;
+    const { page, limit } = this.state;
+    const { field, order } = sorter;
+
+    if (!searchData) {
+      message.warn("请先搜索~");
+      return;
+    }
+    const sort = order === "ascend" ? 1 : order === "descend" ? -1 : undefined;
+    this.props.getCourseList({
+      ...searchData,
+      page,
+      limit,
+      sortBy: field,
+      sort,
+    });
   };
+
+  getSearchFormData = (data) => {
+    this.searchData = data;
+  };
+  searchData = null;
 
   render() {
     const {
@@ -258,7 +280,9 @@ class Course extends Component {
 
         <div className="course-table">
           <div className="course-table-header">
-            <h3>课程数据列表</h3>
+            <h3>
+              <FormattedMessage id="courseList" />
+            </h3>
             <div>
               <Button type="primary" style={{ marginRight: 10 }}>
                 <PlusOutlined />
