@@ -18,6 +18,7 @@ import screenfull from "screenfull";
 import {
   getLessonList,
   batchRemoveLessonList,
+  batchRemoveChapterList,
   getChapterList,
 } from "../../redux";
 import "./index.less";
@@ -28,7 +29,12 @@ import "./index.less";
     chapters: state.chapter.chapters,
     courseId: state.chapter.courseId,
   }),
-  { getLessonList, batchRemoveLessonList, getChapterList }
+  {
+    getLessonList,
+    batchRemoveLessonList,
+    getChapterList,
+    batchRemoveChapterList,
+  }
 )
 class List extends Component {
   state = {
@@ -97,6 +103,7 @@ class List extends Component {
         const {
           chapters: { items: chapters }, // 对chapters解构赋值
           batchRemoveLessonList,
+          batchRemoveChapterList,
         } = this.props;
 
         // 将id列表分成章节id列表和课时id列表
@@ -112,6 +119,7 @@ class List extends Component {
         });
 
         await batchRemoveLessonList(ids);
+        await batchRemoveChapterList(chapterIds);
         message.success("批量删除数据成功");
       },
     });

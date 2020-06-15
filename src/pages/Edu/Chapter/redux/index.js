@@ -4,6 +4,7 @@ import {
   getChapterList,
   getLessonList,
   batchRemoveLessonList,
+  batchRemoveChapterList,
 } from "./action";
 
 export {
@@ -12,4 +13,5 @@ export {
   getChapterList,
   getLessonList,
   batchRemoveLessonList,
+  batchRemoveChapterList,
 };

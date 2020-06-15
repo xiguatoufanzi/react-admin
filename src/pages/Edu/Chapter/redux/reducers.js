@@ -73,7 +73,15 @@ export default function chapter(prevState = initChapter, action) {
         },
       };
     case BATCH_REMOVE_CHAPTER_LIST:
-      return;
+      return {
+        ...prevState,
+        chapters: {
+          total: prevState.chapters.total,
+          items: prevState.chapters.items.filter(
+            (chapter) => action.data.indexOf(chapter._id) === -1
+          ),
+        },
+      };
     default:
       return prevState;
   }
