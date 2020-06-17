@@ -42,7 +42,7 @@ export default class Search extends Component {
   };
 
   componentDidMount() {
-    setTimeout(() => {
+    this.timer = setTimeout(() => {
       // 数据源
       const data = [
         {
@@ -72,6 +72,9 @@ export default class Search extends Component {
       ];
       this.setState({ data, total: data.reduce((p, c) => p + c.value, 0) });
     }, 1000);
+  }
+  componentWillUnmount() {
+    clearTimeout(this.timer);
   }
 
   onRadioChange = (e) => {

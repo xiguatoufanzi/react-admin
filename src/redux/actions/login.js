@@ -1,20 +1,32 @@
 import { reqLogin, reqLogout } from "@api/acl/login";
-import { LOGIN_SUCCESS, REMOVE_TOKEN } from "../constants/login";
+import { reqMobileLogin } from "@api/acl/oauth";
+
+import { LOGIN, REMOVE_TOKEN } from "../constants/login";
 
 /**
- * 登陆
+ * 账号密码登陆
  */
-const loginSuccessSync = user => ({
-  type: LOGIN_SUCCESS,
-  data: user
+const loginSync = (token) => ({
+  type: LOGIN,
+  data: token,
 });
 
 export const login = (username, password) => {
-  return dispatch => {
-    return reqLogin(username, password).then(response => {
-      dispatch(loginSuccessSync(response));
-      // 返回token，外面才能接受
-      return response.token;
+  return (dispatch) => {
+    return reqLogin(username, password).then(({ token }) => {
+      dispatch(loginSync(token));
+      return token;
+    });
+  };
+};
+
+// 手机号验证码登陆
+export const mobileLogin = (mobile, code) => {
+  return (dispatch) => {
+    // 执行异步代码~
+    return reqMobileLogin(mobile, code).then(({ token }) => {
+      dispatch(loginSync(token));
+      return token;
     });
   };
 };
@@ -23,14 +35,14 @@ export const login = (username, password) => {
  * 删除token
  */
 export const removeToken = () => ({
-  type: REMOVE_TOKEN
+  type: REMOVE_TOKEN,
 });
 
 /**
  * 登出
  */
 export const logout = () => {
-  return dispatch => {
+  return (dispatch) => {
     return reqLogout().then(() => {
       dispatch(removeToken());
     });

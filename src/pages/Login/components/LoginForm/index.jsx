@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, Form, Input, Button, Checkbox, Row, Col } from "antd";
 import {
   UserOutlined,
@@ -8,6 +8,10 @@ import {
   WechatOutlined,
   QqOutlined,
 } from "@ant-design/icons";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
+import { login, mobileLogin } from "@redux/actions/login";
+import { reqSendCode } from "@api/acl/oauth";
 
 import "./index.less";
 
@@ -17,7 +21,7 @@ const { TabPane } = Tabs;
 const rules = [
   {
     required: true,
-    // message: "请输入数据"
+    // message: "请输入数据",
   },
   { max: 15, message: "输入的长度不能超过15位" },
   { min: 4, message: "输入的长度不能小于4位" },
@@ -27,16 +31,104 @@ const rules = [
   },
 ];
 
-export default function LoginForm() {
+const TOTAL_TIME = 60;
+// 倒计时
+let countingDownTime = TOTAL_TIME;
+let timer = null;
+function LoginForm({ login, history, mobileLogin }) {
+  // Form表单提供form对象，对表单进行更加细致的操作
+  const [form] = Form.useForm();
+
+  const [activeKey, setActiveKey] = useState("user");
+  // 是否已经发送验证码
+  const [isSendCode, setIsSendCode] = useState(false);
+  // 只需要更新组件的方法，不需要数据
+  const [, setCountingDownTime] = useState(0);
+
   // 切换面板
   const handleTabChange = (key) => {
-    console.log(key);
+    setActiveKey(key);
+  };
+
+  // 定义公共校验规则
+  const validateMessages = {
+    required: "请输入${name}!",
+    // types: {
+    //   username: "${name} is not validate email!",
+    //   password: "${name} is not a validate number!",
+    // },
+    // number: {
+    //   range: '${label} must be between ${min} and ${max}',
+    // },
+  };
+
+  const finish = async (values) => {
+    if (activeKey === "user") {
+      form
+        .validateFields(["username", "password", "remember"])
+        .then(async (values) => {
+          const { username, password, remember } = values;
+          const token = await login(username, password);
+          if (remember) {
+            localStorage.setItem("user_token", token);
+          }
+          // 跳转到主页
+          history.replace("/");
+        });
+      return;
+    }
+    form.validateFields(["mobile", "code", "remember"]).then(async (values) => {
+      const { mobile, code, remember } = values;
+      const token = await mobileLogin(mobile, code);
+      if (remember) {
+        localStorage.setItem("user_token", token);
+      }
+      // 跳转到主页
+      history.replace("/");
+    });
+  };
+
+  // 更新倒计时
+  const countingDown = () => {
+    timer = setInterval(() => {
+      countingDownTime--;
+      if (countingDownTime <= 0) {
+        clearInterval(timer);
+        countingDownTime = TOTAL_TIME;
+        setIsSendCode(false);
+        return;
+      }
+      setCountingDownTime(countingDownTime);
+      console.log(111);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
+  // 发送验证码
+  const sendCode = () => {
+    form.validateFields(["mobile"]).then(async ({ mobile }) => {
+      // 发送请求，获取验证码~
+      await reqSendCode(mobile);
+      // 发送成功~
+      setIsSendCode(true); // 代表已经发送过验证码
+      countingDown();
+    });
   };
 
   return (
     <div>
-      <Form name="basic" initialValues={{ remember: true }}>
-        <Tabs onChange={handleTabChange}>
+      <Form
+        form={form}
+        name="basic"
+        initialValues={{ remember: true }}
+        validateMessages={validateMessages}
+      >
+        <Tabs onChange={handleTabChange} activeKey={activeKey}>
           <TabPane tab="账户密码登录" key="user">
             <Form.Item name="username" rules={rules}>
               <Input prefix={<UserOutlined />} placeholder="用户名: admin" />
@@ -49,9 +141,9 @@ export default function LoginForm() {
               />
             </Form.Item>
           </TabPane>
-          <TabPane tab="手机号登录" key="phone">
+          <TabPane tab="手机号登录" key="mobile">
             <Form.Item
-              name="phone"
+              name="mobile"
               rules={[
                 { required: true, message: "请输入手机号" },
                 {
@@ -64,7 +156,7 @@ export default function LoginForm() {
             </Form.Item>
 
             <Form.Item
-              name="username"
+              name="code"
               rules={[
                 {
                   required: true,
@@ -74,7 +166,11 @@ export default function LoginForm() {
             >
               <div className="login-form-phone">
                 <Input placeholder="验证码" />
-                <Button>点击发送验证码</Button>
+                <Button onClick={sendCode} disabled={isSendCode}>
+                  {isSendCode
+                    ? `${countingDownTime}秒后可重发`
+                    : "点击发送验证码"}
+                </Button>
               </div>
             </Form.Item>
           </TabPane>
@@ -91,11 +187,7 @@ export default function LoginForm() {
         </Form.Item>
 
         <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="login-form-button"
-          >
+          <Button type="primary" className="login-form-button" onClick={finish}>
             登陆
           </Button>
         </Form.Item>
@@ -120,3 +212,5 @@ export default function LoginForm() {
     </div>
   );
 }
+
+export default withRouter(connect(null, { login, mobileLogin })(LoginForm));
